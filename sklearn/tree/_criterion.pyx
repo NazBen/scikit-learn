@@ -1274,7 +1274,7 @@ cdef class Median(RegressionCriterion):
            samples[start:end]."""
 
         # This has no real importance
-        return weighted_n_node_samples
+        return ( self.weighted_n_node_samples )
 
     cdef double proxy_impurity_improvement(self) nogil:
         """Compute a proxy of the impurity reduction
@@ -1287,9 +1287,27 @@ cdef class Median(RegressionCriterion):
         The absolute impurity improvement is only computed by the
         impurity_improvement method once the best split has been found.
         """
-        
+        cdef double tmp
+
+        if self.pos == self.n_node_samples/2:
+            tmp = 100.0
+        else:
+            tmp = 0.0
+
         # This quantity is minimised when the position is at the median.
-        return (self.weighted_n_left**2 + self.weighted_n_right**2 )
+        return ( tmp )
+
+    cdef double impurity_improvement(self, double impurity) nogil:
+        cdef double* sum_left = self.sum_left
+        cdef double* sum_right = self.sum_right
+
+        cdef double total_sum_left = 0.0
+        cdef double total_sum_right = 0.0
+
+        cdef SIZE_t k
+        cdef double diff = 0.0
+
+        return ( 10. )
 
 cdef class FriedmanMSE(MSE):
     """Mean squared error impurity criterion with improvement score by Friedman
