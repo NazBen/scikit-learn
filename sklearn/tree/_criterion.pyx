@@ -1264,6 +1264,33 @@ cdef class MAE(RegressionCriterion):
                                       self.n_outputs)
 
 
+cdef class Median(RegressionCriterion):
+    """Mean squared error impurity criterion.
+
+        MSE = var_left + var_right
+    """
+    cdef double node_impurity(self) nogil:
+        """Evaluate the impurity of the current node, i.e. the impurity of
+           samples[start:end]."""
+
+        # This has no real importance
+        return weighted_n_node_samples
+
+    cdef double proxy_impurity_improvement(self) nogil:
+        """Compute a proxy of the impurity reduction
+
+        This method is used to speed up the search for the best split.
+        It is a proxy quantity such that the split that maximizes this value
+        also maximizes the impurity improvement. It neglects all constant terms
+        of the impurity decrease for a given split.
+
+        The absolute impurity improvement is only computed by the
+        impurity_improvement method once the best split has been found.
+        """
+        
+        # This quantity is minimised when the position is at the median.
+        return (self.weighted_n_left**2 + self.weighted_n_right**2 )
+
 cdef class FriedmanMSE(MSE):
     """Mean squared error impurity criterion with improvement score by Friedman
 
