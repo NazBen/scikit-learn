@@ -1307,7 +1307,7 @@ cdef class Median(RegressionCriterion):
         cdef SIZE_t k
         cdef double diff = 0.0
 
-        return ( 10. )
+        return ( self.weighted_n_node_samples )
 
 cdef class FriedmanMSE(MSE):
     """Mean squared error impurity criterion with improvement score by Friedman
