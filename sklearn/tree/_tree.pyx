@@ -333,10 +333,10 @@ cdef class BestFirstTreeBuilder(TreeBuilder):
         cdef SIZE_t max_depth_seen = -1
         cdef int rc = 0
         cdef Node* node
-
+        
         # Initial capacity
         cdef SIZE_t init_capacity = max_split_nodes + max_leaf_nodes
-        tree._resize(init_capacity)
+        tree._resize(init_capacity)        
 
         with nogil:
             # add root to frontier
