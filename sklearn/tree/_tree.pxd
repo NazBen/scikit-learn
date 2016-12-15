@@ -53,6 +53,8 @@ cdef class Tree:
     cdef Node* nodes                     # Array of nodes
     cdef double* value                   # (capacity, n_outputs, max_n_classes) array of values
     cdef SIZE_t value_stride             # = n_outputs * max_n_classes
+    cdef DTYPE_t* X                       # Input values used to the fit
+    cdef DOUBLE_t* y                       # Output values used to the fit
 
     # Methods
     cdef SIZE_t _add_node(self, SIZE_t parent, bint is_left, bint is_leaf,
@@ -66,6 +68,7 @@ cdef class Tree:
     cdef np.ndarray _get_node_ndarray(self)
 
     cpdef np.ndarray predict(self, object X)
+    cpdef np.ndarray predict_quantile(self, object X, float alpha)
 
     cpdef np.ndarray apply(self, object X)
     cdef np.ndarray _apply_dense(self, object X)

@@ -420,6 +420,15 @@ class BaseDecisionTree(six.with_metaclass(ABCMeta, BaseEstimator)):
             else:
                 return proba[:, :, 0]
 
+    def predict_quantile(self, X, alpha, check_input=True):
+      """
+      """
+      check_is_fitted(self, 'tree_')
+      X = self._validate_X_predict(X, check_input)
+      proba = self.tree_.predict_quantile(X, alpha)
+      n_samples = X.shape[0]
+      return proba
+
     def apply(self, X, check_input=True):
         """
         Returns the index of the leaf that each sample is predicted as.

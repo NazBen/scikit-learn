@@ -333,7 +333,11 @@ cdef class BestFirstTreeBuilder(TreeBuilder):
         cdef SIZE_t max_depth_seen = -1
         cdef int rc = 0
         cdef Node* node
-        
+
+        cdef np.ndarray X_ndarray = X
+        tree.y = <DOUBLE_t*> y.data
+        tree.X = <DTYPE_t*> X_ndarray.data
+       
         # Initial capacity
         cdef SIZE_t init_capacity = max_split_nodes + max_leaf_nodes
         tree._resize(init_capacity)        
@@ -603,6 +607,8 @@ cdef class Tree:
         self.capacity = 0
         self.value = NULL
         self.nodes = NULL
+        self.X = NULL
+        self.y = NULL
 
     def __dealloc__(self):
         """Destructor."""
@@ -610,6 +616,8 @@ cdef class Tree:
         free(self.n_classes)
         free(self.value)
         free(self.nodes)
+        free(self.X)
+        free(self.y)
 
     def __reduce__(self):
         """Reduce re-implementation, for pickling."""
@@ -748,6 +756,29 @@ cdef class Tree:
         if self.n_outputs == 1:
             out = out.reshape(X.shape[0], self.max_n_classes)
         return out
+
+    cpdef np.ndarray predict_quantile(self, object X, float alpha):
+        """Predict conditional alpha-quantile for X."""
+
+        node = self.apply(X)
+
+        # Sample in the node of X
+        #n_node_samples = self._get_node_ndarray().take(node, axis=0, mode='clip')[1]
+
+        #cdef np.ndarray[DOUBLE_t] y = np.zeros((self.n_outputs,), dtype=np.doublep)
+        #cdef DOUBLE_t* y_ptr = <DOUBLE_t*> y.data
+
+        #for i in range(self.n_outputs):
+        #    y_ptr[i] = <DOUBLE_t> self.y
+
+        cdef np.npy_intp shape[1]
+        shape[0] = <np.npy_intp> self.n_outputs
+        
+        cdef np.ndarray arr
+        arr = np.PyArray_SimpleNewFromData(1, shape, np.NPY_DOUBLE, self.y)
+        Py_INCREF(self)
+        arr.base = <PyObject*> self
+        return arr
 
     cpdef np.ndarray apply(self, object X):
         """Finds the terminal region (=leaf node) for each sample in X."""
