@@ -776,13 +776,13 @@ cdef class Tree:
         # The node of X
         cdef np.ndarray leafs_X = self.apply(X)
         cdef np.ndarray leafs_sample = self.apply(self.X_ndarray)
-        cdef np.ndarray[ndim=1, dtype=DOUBLE_t] quantiles = np.zeros((n_samples,))
+        cdef np.ndarray[ndim=1, dtype=DOUBLE_t] out = np.zeros((n_samples,))
         cdef np.ndarray y_leaf
 
         for i in range(n_samples):
             y_leaf = self.y_ndarray[leafs_sample == leafs_X[i]]
-            quantiles[i] = np.percentile(y_leaf, alpha*100.)
-        return quantiles
+            out[i] = np.percentile(y_leaf, alpha*100.)
+        return out
 
     cpdef np.ndarray apply(self, object X):
         """Finds the terminal region (=leaf node) for each sample in X."""

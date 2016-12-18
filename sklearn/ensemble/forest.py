@@ -687,6 +687,27 @@ class ForestRegressor(six.with_metaclass(ABCMeta, BaseForest, RegressorMixin)):
 
         return y_hat
 
+    def predict_quantile(self, X, alpha):
+        """Predict conditional quantile at alpha or X.
+        """
+        check_is_fitted(self, 'estimators_')
+        # Check data
+        X = self._validate_X_predict(X)
+
+        # Assign chunk of trees to jobs
+        n_jobs, _, _ = _partition_estimators(self.n_estimators, self.n_jobs)
+
+        # Parallel loop
+        all_q_hat = Parallel(n_jobs=n_jobs, verbose=self.verbose,
+                             backend="threading")(
+            delayed(parallel_helper)(e, 'predict_quantile', X, alpha, check_input=False)
+            for e in self.estimators_)
+
+        # Reduce
+        q_hat = sum(all_q_hat) / len(self.estimators_)
+
+        return q_hat
+
     def _set_oob_score(self, X, y):
         """Compute out-of-bag scores"""
         X = check_array(X, dtype=DTYPE, accept_sparse='csr')
