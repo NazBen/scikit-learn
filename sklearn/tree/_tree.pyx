@@ -194,6 +194,13 @@ cdef class DepthFirstTreeBuilder(TreeBuilder):
         cdef Stack stack = Stack(INITIAL_STACK_SIZE)
         cdef StackRecord stack_record
 
+        cdef np.ndarray X_ndarray = X
+        tree.n_samples = <SIZE_t> X_ndarray.shape[0]
+        tree.y = <DOUBLE_t*> y.data
+        tree.X = <DTYPE_t*> X_ndarray.data
+        tree.X_ndarray = X_ndarray
+        tree.y_ndarray = y
+
         with nogil:
             # push root node onto stack
             rc = stack.push(0, n_node_samples, 0, _TREE_UNDEFINED, 0, INFINITY, 0)
@@ -335,8 +342,11 @@ cdef class BestFirstTreeBuilder(TreeBuilder):
         cdef Node* node
 
         cdef np.ndarray X_ndarray = X
+        tree.n_samples = <SIZE_t> X_ndarray.shape[0]
         tree.y = <DOUBLE_t*> y.data
         tree.X = <DTYPE_t*> X_ndarray.data
+        tree.X_ndarray = X_ndarray
+        tree.y_ndarray = y
        
         # Initial capacity
         cdef SIZE_t init_capacity = max_split_nodes + max_leaf_nodes
@@ -605,6 +615,7 @@ cdef class Tree:
         self.max_depth = 0
         self.node_count = 0
         self.capacity = 0
+        self.n_samples = 0
         self.value = NULL
         self.nodes = NULL
         self.X = NULL
@@ -760,25 +771,18 @@ cdef class Tree:
     cpdef np.ndarray predict_quantile(self, object X, float alpha):
         """Predict conditional alpha-quantile for X."""
 
-        node = self.apply(X)
+        cdef SIZE_t n_samples = X.shape[0]
 
-        # Sample in the node of X
-        #n_node_samples = self._get_node_ndarray().take(node, axis=0, mode='clip')[1]
+        # The node of X
+        cdef np.ndarray leafs_X = self.apply(X)
+        cdef np.ndarray leafs_sample = self.apply(self.X_ndarray)
+        cdef np.ndarray[ndim=1, dtype=DOUBLE_t] quantiles = np.zeros((n_samples,))
+        cdef np.ndarray y_leaf
 
-        #cdef np.ndarray[DOUBLE_t] y = np.zeros((self.n_outputs,), dtype=np.doublep)
-        #cdef DOUBLE_t* y_ptr = <DOUBLE_t*> y.data
-
-        #for i in range(self.n_outputs):
-        #    y_ptr[i] = <DOUBLE_t> self.y
-
-        cdef np.npy_intp shape[1]
-        shape[0] = <np.npy_intp> self.n_outputs
-        
-        cdef np.ndarray arr
-        arr = np.PyArray_SimpleNewFromData(1, shape, np.NPY_DOUBLE, self.y)
-        Py_INCREF(self)
-        arr.base = <PyObject*> self
-        return arr
+        for i in range(n_samples):
+            y_leaf = self.y_ndarray[leafs_sample == leafs_X[i]]
+            quantiles[i] = np.percentile(y_leaf, alpha*100.)
+        return quantiles
 
     cpdef np.ndarray apply(self, object X):
         """Finds the terminal region (=leaf node) for each sample in X."""
@@ -842,8 +846,8 @@ cdef class Tree:
 
         # Extract input
         cdef np.ndarray[ndim=1, dtype=DTYPE_t] X_data_ndarray = X.data
-        cdef np.ndarray[ndim=1, dtype=INT32_t] X_indices_ndarray  = X.indices
-        cdef np.ndarray[ndim=1, dtype=INT32_t] X_indptr_ndarray  = X.indptr
+        cdef np.ndarray[ndim=1, dtype=INT32_t] X_indices_ndarray = X.indices
+        cdef np.ndarray[ndim=1, dtype=INT32_t] X_indptr_ndarray = X.indptr
 
         cdef DTYPE_t* X_data = <DTYPE_t*>X_data_ndarray.data
         cdef INT32_t* X_indices = <INT32_t*>X_indices_ndarray.data
