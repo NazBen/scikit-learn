@@ -197,6 +197,8 @@ cdef class DepthFirstTreeBuilder(TreeBuilder):
         cdef np.ndarray X_ndarray = X
         tree.X_ndarray = X_ndarray
         tree.y_ndarray = y
+        tree.X = <DTYPE_t*> X_ndarray.data
+        tree.y = <DOUBLE_t*> y.data
 
         with nogil:
             # push root node onto stack
@@ -611,6 +613,8 @@ cdef class Tree:
         self.capacity = 0
         self.value = NULL
         self.nodes = NULL
+        self.X = NULL
+        self.y = NULL
 
     def __dealloc__(self):
         """Destructor."""
@@ -762,15 +766,15 @@ cdef class Tree:
 
         cdef SIZE_t n_samples = X.shape[0]
 
-        # The node of X
-        cdef np.ndarray leafs_X = self.apply(X)
-        cdef np.ndarray leafs_sample = self.apply(self.X_ndarray)
+        # # The node of X
+        # cdef np.ndarray leafs_X = self.apply(X)
+        # cdef np.ndarray leafs_sample = self.apply(self.X_ndarray)
         cdef np.ndarray[ndim=1, dtype=DOUBLE_t] out = np.zeros((n_samples,))
-        cdef np.ndarray y_leaf
+        # cdef np.ndarray y_leaf
 
-        for i in range(n_samples):
-            y_leaf = self.y_ndarray[leafs_sample == leafs_X[i]]
-            out[i] = np.percentile(y_leaf, alpha*100.)
+        # for i in range(n_samples):
+        #     y_leaf = self.y_ndarray[leafs_sample == leafs_X[i]]
+        #     out[i] = np.percentile(y_leaf, alpha*100.)
         return out
 
     cpdef np.ndarray apply(self, object X):
@@ -1055,7 +1059,6 @@ cdef class Tree:
                          shape=(n_samples, self.node_count))
 
         return out
-
 
     cpdef compute_feature_importances(self, normalize=True):
         """Computes the importance of each feature (aka variable)."""

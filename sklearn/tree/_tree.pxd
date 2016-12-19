@@ -55,6 +55,8 @@ cdef class Tree:
     cdef SIZE_t value_stride             # = n_outputs * max_n_classes
     cdef np.ndarray X_ndarray
     cdef np.ndarray y_ndarray
+    cdef DTYPE_t* X
+    cdef DOUBLE_t* y
 
     # Methods
     cdef SIZE_t _add_node(self, SIZE_t parent, bint is_left, bint is_leaf,
