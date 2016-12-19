@@ -44,7 +44,6 @@ cdef class Tree:
     cdef SIZE_t* n_classes               # Number of classes in y[:, k]
     cdef public SIZE_t n_outputs         # Number of outputs in y
     cdef public SIZE_t max_n_classes     # max(n_classes)
-    cdef public SIZE_t n_samples         # Sample size
     
     # Inner structures: values are stored separately from node structure,
     # since size is determined at runtime.
@@ -54,8 +53,6 @@ cdef class Tree:
     cdef Node* nodes                     # Array of nodes
     cdef double* value                   # (capacity, n_outputs, max_n_classes) array of values
     cdef SIZE_t value_stride             # = n_outputs * max_n_classes
-    cdef DTYPE_t* X                      # Input values used to the fit
-    cdef DOUBLE_t* y                     # Output values used to the fit
     cdef np.ndarray X_ndarray
     cdef np.ndarray y_ndarray
 

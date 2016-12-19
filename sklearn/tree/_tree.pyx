@@ -195,9 +195,6 @@ cdef class DepthFirstTreeBuilder(TreeBuilder):
         cdef StackRecord stack_record
 
         cdef np.ndarray X_ndarray = X
-        tree.n_samples = <SIZE_t> X_ndarray.shape[0]
-        tree.y = <DOUBLE_t*> y.data
-        tree.X = <DTYPE_t*> X_ndarray.data
         tree.X_ndarray = X_ndarray
         tree.y_ndarray = y
 
@@ -342,9 +339,6 @@ cdef class BestFirstTreeBuilder(TreeBuilder):
         cdef Node* node
 
         cdef np.ndarray X_ndarray = X
-        tree.n_samples = <SIZE_t> X_ndarray.shape[0]
-        tree.y = <DOUBLE_t*> y.data
-        tree.X = <DTYPE_t*> X_ndarray.data
         tree.X_ndarray = X_ndarray
         tree.y_ndarray = y
        
@@ -615,11 +609,8 @@ cdef class Tree:
         self.max_depth = 0
         self.node_count = 0
         self.capacity = 0
-        self.n_samples = 0
         self.value = NULL
         self.nodes = NULL
-        self.X = NULL
-        self.y = NULL
 
     def __dealloc__(self):
         """Destructor."""
@@ -627,8 +618,6 @@ cdef class Tree:
         free(self.n_classes)
         free(self.value)
         free(self.nodes)
-        free(self.X)
-        free(self.y)
 
     def __reduce__(self):
         """Reduce re-implementation, for pickling."""

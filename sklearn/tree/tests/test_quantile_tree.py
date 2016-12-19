@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 print "Quantile Test"
 
-n = 10000
+n = 100
 alpha = 0.05
 x = np.linspace(0., 1., n).reshape(-1, 1)
 y = x.ravel()

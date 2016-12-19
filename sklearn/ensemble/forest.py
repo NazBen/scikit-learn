@@ -330,6 +330,8 @@ class BaseForest(six.with_metaclass(ABCMeta, BaseEnsemble)):
         if self.oob_score:
             self._set_oob_score(X, y)
 
+        self.X = X
+        self.y = y
         # Decapsulate classes_ attributes
         if hasattr(self, "classes_") and self.n_outputs_ == 1:
             self.n_classes_ = self.n_classes_[0]
@@ -691,12 +693,13 @@ class ForestRegressor(six.with_metaclass(ABCMeta, BaseForest, RegressorMixin)):
         """Predict conditional quantile at alpha or X.
         """
         check_is_fitted(self, 'estimators_')
+
         # Check data
         X = self._validate_X_predict(X)
 
         # Assign chunk of trees to jobs
         n_jobs, _, _ = _partition_estimators(self.n_estimators, self.n_jobs)
-
+        
         # Parallel loop
         all_q_hat = Parallel(n_jobs=n_jobs, verbose=self.verbose,
                              backend="threading")(
@@ -750,6 +753,36 @@ class ForestRegressor(six.with_metaclass(ABCMeta, BaseForest, RegressorMixin)):
 
         self.oob_score_ /= self.n_outputs_
 
+    def compute_feature_importances_quantile(self, alpha):
+        """Computes the importance of each feature on the output quantile"""
+
+        # Add checker for alpha
+        X = check_array(self.X, dtype=DTYPE, accept_sparse='csr')
+        y = self.y
+        n_samples = y.shape[0]
+        
+        diff_errors = np.zeros((self.n_estimators, self.n_features_))
+        oob_score = np.zeros((self.n_estimators, self.n_features_))
+
+        for i, estimator in enumerate(self.estimators_):
+            unsampled_indices = _generate_unsampled_indices(
+                    estimator.random_state, n_samples)
+
+            x_oob = X[unsampled_indices, :]
+            y_oob = y[unsampled_indices, :].ravel()
+
+            q_estimator = estimator.predict_quantile(x_oob, alpha, check_input=False)
+            error_norm = ((y_oob - q_estimator) * (alpha - (y_oob <= q_estimator)*1.)).mean()
+
+            for j in range(self.n_features_):
+                x_oob_perm_j = x_oob.copy()
+                x_oob_perm_j[:, j] = np.random.permutation(x_oob[:, j])
+                q_estimator_perm = estimator.predict_quantile(x_oob_perm_j, alpha)
+                
+                error_norm_perm = ((y_oob - q_estimator_perm) * (alpha - (y_oob <= q_estimator_perm)*1.)).mean()
+                oob_score[i, j] = error_norm_perm - error_norm
+
+        return oob_score.mean(axis=0)
 
 class RandomForestClassifier(ForestClassifier):
     """A random forest classifier.
