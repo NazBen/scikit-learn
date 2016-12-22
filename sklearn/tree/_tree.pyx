@@ -20,6 +20,7 @@ from cpython cimport Py_INCREF, PyObject
 
 from libc.stdlib cimport free
 from libc.stdlib cimport realloc
+from libc.stdlib cimport qsort
 from libc.string cimport memcpy
 from libc.string cimport memset
 
@@ -766,15 +767,20 @@ cdef class Tree:
 
         cdef SIZE_t n_samples = X.shape[0]
 
-        # # The node of X
-        # cdef np.ndarray leafs_X = self.apply(X)
-        # cdef np.ndarray leafs_sample = self.apply(self.X_ndarray)
+        # The node of X
+        cdef np.ndarray leafs_X = self.apply(X)
+        cdef np.ndarray leafs_sample = self.apply(self.X_ndarray)
         cdef np.ndarray[ndim=1, dtype=DOUBLE_t] out = np.zeros((n_samples,))
-        # cdef np.ndarray y_leaf
+        cdef np.ndarray y_leaf_ndarray
+        # cdef DOUBLE_t* y_leaf
 
-        # for i in range(n_samples):
-        #     y_leaf = self.y_ndarray[leafs_sample == leafs_X[i]]
-        #     out[i] = np.percentile(y_leaf, alpha*100.)
+        for i in range(n_samples):
+            y_leaf_ndarray = self.y_ndarray[leafs_sample == leafs_X[i]]
+            # n_node_samples = y_leaf_ndarray.shape[0]
+            # y_leaf = <DOUBLE_t*>y_leaf_ndarray.data
+            # qsort(y_leaf, n_node_samples, sizeof(DOUBLE_t), compare_DOUBLE_t)
+            # out[i] = y_leaf[<SIZE_t>(alpha*n_node_samples)]
+            out[i] = np.percentile(y_leaf_ndarray, alpha*100.)
         return out
 
     cpdef np.ndarray apply(self, object X):
@@ -1133,3 +1139,7 @@ cdef class Tree:
         Py_INCREF(self)
         arr.base = <PyObject*> self
         return arr
+
+cdef int compare_DOUBLE_t(const void* a, const void* b) nogil:
+    """Comparison function for sort."""
+    return <int>((<DOUBLE_t*>a)[0] - (<DOUBLE_t*>b)[0])

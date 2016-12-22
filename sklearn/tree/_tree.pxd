@@ -33,7 +33,6 @@ cdef struct Node:
     SIZE_t n_node_samples                # Number of samples at the node
     DOUBLE_t weighted_n_node_samples     # Weighted number of samples at the node
 
-
 cdef class Tree:
     # The Tree object is a binary tree structure constructed by the
     # TreeBuilder. The tree structure is used for predictions and

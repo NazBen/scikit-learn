@@ -782,7 +782,8 @@ class ForestRegressor(six.with_metaclass(ABCMeta, BaseForest, RegressorMixin)):
                 error_norm_perm = ((y_oob - q_estimator_perm) * (alpha - (y_oob <= q_estimator_perm)*1.)).mean()
                 oob_score[i, j] = error_norm_perm - error_norm
 
-        return oob_score.mean(axis=0)
+            oob_score[i, :] = oob_score[i, :] / oob_score[i, :].sum()
+        return oob_score
 
 class RandomForestClassifier(ForestClassifier):
     """A random forest classifier.
