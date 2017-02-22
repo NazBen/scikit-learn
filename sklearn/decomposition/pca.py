@@ -4,7 +4,7 @@
 # Author: Alexandre Gramfort <alexandre.gramfort@inria.fr>
 #         Olivier Grisel <olivier.grisel@ensta.org>
 #         Mathieu Blondel <mathieu@mblondel.org>
-#         Denis A. Engemann <d.engemann@fz-juelich.de>
+#         Denis A. Engemann <denis-alexander.engemann@inria.fr>
 #         Michael Eickenberg <michael.eickenberg@inria.fr>
 #         Giorgio Patrini <giorgio.patrini@anu.edu.au>
 #
@@ -282,6 +282,12 @@ class PCA(_BasePCA):
     [ 0.99244...]
     >>> print(pca.singular_values_)  # doctest: +ELLIPSIS
     [ 6.30061...]
+
+    Notes
+    -----
+    PCA uses the maximum likelihood estimate of the eigenvalues, which does not
+    include the Bessel correction, though in practice this should rarely make a
+    difference in a machine learning context.
 
     See also
     --------

@@ -187,8 +187,9 @@ rules before submitting a pull request:
       contribution is complete and should be subjected to a detailed review.
       Two core developers will review your code and change the prefix of the pull
       request to ``[MRG + 1]`` and ``[MRG + 2]`` on approval, making it eligible
-      for merging. Incomplete contributions should be prefixed ``[WIP]`` to
-      indicate a work in progress (and changed to ``[MRG]`` when it matures).
+      for merging. An incomplete contribution -- where you expect to do more
+      work before receiving a full review -- should be prefixed ``[WIP]`` (to
+      indicate a work in progress) and changed to ``[MRG]`` when it matures.
       WIPs may be useful to: indicate you are working on something to avoid
       duplicated work, request broad review of functionality or API, or seek
       collaborators. WIPs often benefit from the inclusion of a
@@ -407,6 +408,11 @@ automatically builds them. Thus, you can easily view your changes in the built
 artifacts using the following formula:
 
 ``http://scikit-learn.org/circle?{BUILD_NUMBER}``
+
+We attempt to assemble a more precise set of changed files in the
+documentation at:
+
+``http://scikit-learn.org/circle?{BUILD_NUMBER}/_changed.html``
 
 Note: When you visit the details page of the CircleCI tests, you can find your
 BUILD_NUMBER mentioned as 'build #' which is different from your pull request
